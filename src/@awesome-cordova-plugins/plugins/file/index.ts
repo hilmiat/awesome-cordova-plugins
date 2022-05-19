@@ -1344,16 +1344,26 @@ export class File extends AwesomeCordovaNativePlugin {
       .then((fileEntry: FileEntry) => {
         const reader = new FileReader();
         return getPromise<T>((resolve, reject) => {
-          reader.onloadend = () => {
-            if (reader.result !== undefined || reader.result !== null) {
-              resolve(reader.result as any as T);
-            } else if (reader.error !== undefined || reader.error !== null) {
-              reject(reader.error);
-            } else {
-              reject({ code: null, message: 'READER_ONLOADEND_ERR' });
+          // reader.onloadend = () => {
+          //   if (reader.result !== undefined || reader.result !== null) {
+          //     resolve(reader.result as any as T);
+          //   } else if (reader.error !== undefined || reader.error !== null) {
+          //     reject(reader.error);
+          //   } else {
+          //     reject({ code: null, message: 'READER_ONLOADEND_ERR' });
+          //   }
+          // };
+          reader._realReader.onloadend = function () {
+            if (reader._result != null) {
+                resolve(reader._result);
+            }
+            else if (reader._error != null) {
+                reject(reader._error);
+            }
+            else {
+                reject({ code: null, message: 'READER_ONLOADEND_ERR' });
             }
           };
-
           fileEntry.file(
             (file) => {
               reader[`readAs${readAs}`].call(reader, file);
